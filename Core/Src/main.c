@@ -27,7 +27,8 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "queue.h"
+#include "RS485.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,7 +49,8 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+uint8_t rx_buffer[RX_BUFFER_SIZE];
+extern xQueueHandle rs485_queue;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -98,7 +100,8 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
-
+  //__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);    //使能UART2空闲中断
+  HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -171,6 +174,26 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
+{
+  if (huart->Instance == USART2)
+  {
+    // Handle UART2 idle event
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    RS485_QueueMsg msg = {0};
+    if (RS485_ProcessFrame(rx_buffer, Size, &msg) == HAL_OK)
+    {
+        // Process the valid frame
+        xQueueSendFromISR(rs485_queue, &msg, &xHigherPriorityTaskWoken);
+    }
+    else
+    {
+
+    }
+    HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);    //重新启动下一次接 ?
+    portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+  }
+}
 
 /* USER CODE END 4 */
 
