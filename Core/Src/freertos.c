@@ -152,28 +152,43 @@ void RS485CommandTask(void *argument)
       switch (msg.cmd)
       {
       case RS485_FRAME_CMD_OFF:
+      {
         BladeNums = msg.data[0];
         Laser_Disable(BladeNums);
         /* code */
         break;
+      }
       case RS485_FRAME_CMD_ON:
+      {
         BladeNums = msg.data[0];
         Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL1);
         Laser_Enable(BladeNums);
         break;
+      }
       case RS485_FRAME_CMD_SET_CONTROL_MODE:
+      {
         ControllMode = msg.data[0];
         break;
+      }
       case RS485_FRAME_CMD_GET_CONTROL_MODE:
+      {
+        
         break;
+      }
       case RS485_FRAME_CMD_SET_POWER_LEVEL:
+      {
         //uint8_t LaserNums = msg.data[0];
         //uint16_t PowerLevel = ((uint16_t)msg.data[1] << 8) | msg.data[2];
         break;
+      }
       case RS485_FRAME_CMD_GET_POWER_LEVEL:
+      {
         break;
+      }
       case RS485_FRAME_CMD_GET_DEVICE_INFO:
+      {
         break;
+      }
       default:
         break;
       }

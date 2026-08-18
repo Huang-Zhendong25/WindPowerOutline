@@ -1,6 +1,22 @@
 #include "RS485.h"
 #include <string.h>
 
+void RS485_Transmit_Enable(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == RS485_EN1_Pin)
+        HAL_GPIO_WritePin(RS485_EN1_GPIO_Port, RS485_EN1_Pin, GPIO_PIN_SET);
+    else if (GPIO_Pin == RS485_EN2_Pin)
+        HAL_GPIO_WritePin(RS485_EN2_GPIO_Port, RS485_EN2_Pin, GPIO_PIN_SET);
+}
+
+void RS485_Transmit_Disable(uint16_t GPIO_Pin)
+{
+    if (GPIO_Pin == RS485_EN1_Pin)
+        HAL_GPIO_WritePin(RS485_EN1_GPIO_Port, RS485_EN1_Pin, GPIO_PIN_RESET);
+    else if (GPIO_Pin == RS485_EN2_Pin)
+        HAL_GPIO_WritePin(RS485_EN2_GPIO_Port, RS485_EN2_Pin, GPIO_PIN_RESET);
+}
+
 static uint8_t RS485_CheckFrameSum(const uint8_t *frame, uint16_t len)
 {
     uint8_t rs485_frame_sum = 0;

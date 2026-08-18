@@ -28,7 +28,10 @@ typedef struct {
     uint8_t data[3];
 } RS485_QueueMsg;
 
+void RS485_Transmit_Enable(uint16_t GPIO_Pin);
+void RS485_Transmit_Disable(uint16_t GPIO_Pin);
 static uint8_t RS485_CheckFrameSum(const uint8_t *frame, uint16_t len);
 uint8_t RS485_ProcessFrame(const uint8_t *frame, uint16_t len, RS485_QueueMsg *msg);
+
 
 #endif

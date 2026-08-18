@@ -195,6 +195,30 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
   }
 }
 
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  switch (GPIO_Pin)
+  {
+  case HALL_IN1_Pin:
+  {
+    /* code */
+    break;
+  }
+  case HALL_IN2_Pin:
+  {
+    /* code */
+    break;
+  }
+  case HALL_IN3_Pin:
+  {
+    /* code */
+    break;
+  }
+  default:
+    break;
+  }
+}
+
 /* USER CODE END 4 */
 
 /**

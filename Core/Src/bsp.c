@@ -50,3 +50,4 @@ void Laser_Set_Brightness(uint8_t bladenums, uint8_t Brightness)
     }
     MS5314_Set_Voltage(channel, Brightness, MS5314_UPDATE_OUTPUT);
 }
+
