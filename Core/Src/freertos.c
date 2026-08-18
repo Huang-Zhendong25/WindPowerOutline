@@ -28,6 +28,7 @@
 #include "queue.h"
 #include "RS485.h"
 #include "bsp.h"
+#include "MS5314.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -100,13 +101,13 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  BaseType_t xReturned = xTaskCreate(RS485CommandTask, "RS485CommandTask", 128 * 4, NULL, osPriorityHigh, &xRS485CommandTaskHandle);
-  if (xReturned != pdPASS)
-  {
-    /* Task creation failed */
-    while (1)
-    {}
-  }
+  //BaseType_t xReturned = xTaskCreate(RS485CommandTask, "RS485CommandTask", 128, NULL, osPriorityHigh, &xRS485CommandTaskHandle);
+  //if (xReturned != pdPASS)
+  //{
+  //  /* Task creation failed */
+  //  while (1)
+  //  {}
+  //}
 
   /* USER CODE END RTOS_THREADS */
 
@@ -130,9 +131,11 @@ void StartDefaultTask(void *argument)
   for(;;)
   {
     HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET);
-    osDelay(1000);
+    vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
     HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
-    osDelay(1000);
+    vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
+    /* MS5314_Write(MS5314_CHANNEL_A, MS5314_MODE_NORMAL, 1, 1);
+    vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1000 milliseconds (1 second) */
   }
   /* USER CODE END StartDefaultTask */
 }

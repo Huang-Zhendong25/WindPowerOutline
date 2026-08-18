@@ -406,6 +406,11 @@
               <FilePath>..\Core\Src\LM3409.c</FilePath>
             </File>
             <File>
+              <FileName>bsp.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\bsp.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>
@@ -554,11 +559,6 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
-            </File>
-            <File>
-              <FileName>bsp.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\bsp.c</FilePath>
             </File>
           </Files>
         </Group>

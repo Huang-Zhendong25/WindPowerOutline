@@ -6,8 +6,8 @@
 #define MS5314_CHANNEL_NUM          4
 #define MS5314_CHANNEL_A			0x00
 #define MS5314_CHANNEL_B			0x01
-#define MS5314_CHANNEL_C			0x10
-#define MS5314_CHANNEL_D			0x11
+#define MS5314_CHANNEL_C			0x02
+#define MS5314_CHANNEL_D			0x03
 
 #define MS5314_MODE_NORMAL		    0x01
 #define MS5314_MODE_PWEDOWN		    0x00
