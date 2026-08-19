@@ -49,7 +49,7 @@ TaskHandle_t xRS485CommandTaskHandle = NULL;
 
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
-
+sys_info system_info;
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -134,7 +134,6 @@ void StartDefaultTask(void *argument)
     vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
     HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
     vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
-    //MS5314_Write(MS5314_CHANNEL_A, MS5314_MODE_NORMAL, 1, 0);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -149,7 +148,7 @@ void RS485CommandTask(void *argument)
   {
     if (xQueueReceive(rs485_queue, &msg, portMAX_DELAY) == pdTRUE)
     {
-      uint8_t BladeNums, ControllMode;
+      uint8_t BladeNums;
       // Process the received message
       switch (msg.cmd)
       {
@@ -157,35 +156,69 @@ void RS485CommandTask(void *argument)
       {
         BladeNums = msg.data[0];
         Laser_Disable(BladeNums);
-        Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL0);
-        /* code */
+        if (Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL0))
+        {
+          system_info.laser_status &= (~BladeNums);
+          RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_OFF, 1, &system_info.laser_status);
+        }
+        else
+        {
+          // Handle error in setting brightness
+        }
+
         break;
       }
       case RS485_FRAME_CMD_ON:
       {
         BladeNums = msg.data[0];
-        Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL1);
+        bool LaserSetResult = Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL1);
         Laser_Enable(BladeNums);
+        if (LaserSetResult)
+        {
+          system_info.laser_status |= BladeNums;
+          RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_ON, 1, &system_info.laser_status);
+        }
+        else
+        {
+          // Handle error in setting brightness
+        }
+
         break;
       }
       case RS485_FRAME_CMD_SET_CONTROL_MODE:
       {
-        ControllMode = msg.data[0];
+        system_info.control_mode = msg.data[0];
+        
+        if (system_info.control_mode == CONTROL_MODE_SERIAL)
+        {
+          HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+          HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+        }
+        else if (system_info.control_mode == CONTROL_MODE_MANUAL)
+        {
+          HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+          HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+        }
+        RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_SET_CONTROL_MODE, 1, &system_info.control_mode);
+
         break;
       }
       case RS485_FRAME_CMD_GET_CONTROL_MODE:
       {
-        
+        RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_CONTROL_MODE, 1, &system_info.control_mode);
         break;
       }
       case RS485_FRAME_CMD_SET_POWER_LEVEL:
       {
-        //uint8_t LaserNums = msg.data[0];
-        //uint16_t PowerLevel = ((uint16_t)msg.data[1] << 8) | msg.data[2];
+        
         break;
       }
       case RS485_FRAME_CMD_GET_POWER_LEVEL:
       {
+        uint8_t power_levels[6] = {system_info.blade1_power_level[0], system_info.blade1_power_level[1],
+                                  system_info.blade2_power_level[0], system_info.blade2_power_level[1],
+                                  system_info.blade3_power_level[0], system_info.blade3_power_level[1]};
+        RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_POWER_LEVEL, 6, power_levels);
         break;
       }
       case RS485_FRAME_CMD_GET_DEVICE_INFO:

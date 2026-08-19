@@ -27,10 +27,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "queue.h"
 #include "RS485.h"
 #include "MS5314.h"
-#include "bsp.h"
+#include "queue.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -103,9 +102,6 @@ int main(void)
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
   bsp_init();
-  /* Laser_Set_Brightness(BLADE_NUM1 | BLADE_NUM2, LASER_BRIGHTNESS_LEVEL1);
-  Laser_Set_Brightness(BLADE_NUM2, LASER_BRIGHTNESS_LEVEL2);
-  Laser_Set_Brightness(BLADE_NUM3, LASER_BRIGHTNESS_LEVEL3); */
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);    //使能UART2空闲中断
   HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
   /* USER CODE END 2 */
@@ -187,7 +183,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
     // Handle UART2 idle event
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
     RS485_QueueMsg msg;
-    if (RS485_ProcessFrame(rx_buffer, Size, &msg) == HAL_OK)
+    if (RS485_ProcessFrame(rx_buffer, Size, &msg) == true)
     {
         // Process the valid frame
         xQueueSendFromISR(rs485_queue, &msg, &xHigherPriorityTaskWoken);
@@ -207,17 +203,20 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
   case HALL_IN1_Pin:
   {
-    /* code */
+    Laser_Enable(BLADE_NUM1);
+    Laser_Set_Brightness(BLADE_NUM1, LASER_BRIGHTNESS_LEVEL1);
     break;
   }
   case HALL_IN2_Pin:
   {
-    /* code */
+    Laser_Enable(BLADE_NUM2);
+    Laser_Set_Brightness(BLADE_NUM2, LASER_BRIGHTNESS_LEVEL1);
     break;
   }
   case HALL_IN3_Pin:
   {
-    /* code */
+    Laser_Enable(BLADE_NUM3);
+    Laser_Set_Brightness(BLADE_NUM3, LASER_BRIGHTNESS_LEVEL1);
     break;
   }
   default:

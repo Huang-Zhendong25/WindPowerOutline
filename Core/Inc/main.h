@@ -32,6 +32,9 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "stdbool.h"
+#include "usart.h"
+#include "spi.h"
+#include "bsp.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
