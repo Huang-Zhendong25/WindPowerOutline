@@ -1,10 +1,17 @@
 #include "bsp.h"
 #include "MS5314.h"
 #include "LM3409.h"
+#include "spi.h"
 
 extern uint8_t ms5314_channels[];
 uint8_t blade_numbers[BLADE_NUMS] = {BLADE_NUM1, BLADE_NUM2, BLADE_NUM3};
 uint16_t laser_numbers[LASER_NUMS] = {LASER_NUM1, LASER_NUM2, LASER_NUM3};
+
+void bsp_init(void)
+{
+    MS5314_Init(&hspi2);
+    MS5314_Set_Voltage(MS5314_CHANNEL_ALL, 0.0f, true);
+}
 
 void Laser_Enable(uint8_t bladenums)
 {
@@ -36,7 +43,7 @@ void Laser_Disable(uint8_t bladenums)
     LM3409_Disable(LaserDisablePins);
 }
 
-void Laser_Set_Brightness(uint8_t bladenums, uint8_t Brightness)
+void Laser_Set_Brightness(uint8_t bladenums, float Brightness)
 {
     // Implementation for setting laser brightness
     uint8_t channel = 0;
@@ -48,6 +55,6 @@ void Laser_Set_Brightness(uint8_t bladenums, uint8_t Brightness)
             channel |= ms5314_channels[BLADE_NUMS - 1 - i];
         }
     }
-    MS5314_Set_Voltage(channel, Brightness, MS5314_UPDATE_OUTPUT);
+    MS5314_Set_Voltage(channel, Brightness, true);
 }
 

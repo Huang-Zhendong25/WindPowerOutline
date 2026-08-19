@@ -30,6 +30,7 @@
 #include "queue.h"
 #include "RS485.h"
 #include "MS5314.h"
+#include "bsp.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -101,11 +102,10 @@ int main(void)
   MX_USART3_UART_Init();
   MX_USB_PCD_Init();
   /* USER CODE BEGIN 2 */
-  MS5314_Init(&hspi2);
-  MS5314_Write(MS5314_CHANNEL_A, MS5314_MODE_NORMAL, 1, 1);
-  MS5314_Write(MS5314_CHANNEL_B, MS5314_MODE_NORMAL, 1, 1);
-  MS5314_Write(MS5314_CHANNEL_C, MS5314_MODE_NORMAL, 1, 1);
-  MS5314_Write(MS5314_CHANNEL_D, MS5314_MODE_NORMAL, 1, 1);
+  bsp_init();
+  /* Laser_Set_Brightness(BLADE_NUM1 | BLADE_NUM2, LASER_BRIGHTNESS_LEVEL1);
+  Laser_Set_Brightness(BLADE_NUM2, LASER_BRIGHTNESS_LEVEL2);
+  Laser_Set_Brightness(BLADE_NUM3, LASER_BRIGHTNESS_LEVEL3); */
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);    //使能UART2空闲中断
   HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
   /* USER CODE END 2 */

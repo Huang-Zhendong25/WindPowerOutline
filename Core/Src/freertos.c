@@ -134,8 +134,7 @@ void StartDefaultTask(void *argument)
     vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
     HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
     vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
-    /* MS5314_Write(MS5314_CHANNEL_A, MS5314_MODE_NORMAL, 1, 1);
-    vTaskDelay(pdMS_TO_TICKS(1000)); // Delay for 1000 milliseconds (1 second) */
+    //MS5314_Write(MS5314_CHANNEL_A, MS5314_MODE_NORMAL, 1, 0);
   }
   /* USER CODE END StartDefaultTask */
 }

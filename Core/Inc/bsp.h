@@ -19,8 +19,9 @@
 #define BLADE_NUM3          0x04
 #define BLADE_NUM_ALL       0x07
 
+void bsp_init(void);
 void Laser_Enable(uint8_t bladenums);
 void Laser_Disable(uint8_t bladenums);
-void Laser_Set_Brightness(uint8_t bladenums, uint8_t Brightness);
+void Laser_Set_Brightness(uint8_t bladenums, float Brightness);
 
 #endif

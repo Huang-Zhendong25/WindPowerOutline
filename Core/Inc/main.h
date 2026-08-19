@@ -31,7 +31,7 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "stdbool.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -69,6 +69,8 @@ void Error_Handler(void);
 #define TEMPERATURE1_GPIO_Port GPIOB
 #define BOOT1_Pin GPIO_PIN_2
 #define BOOT1_GPIO_Port GPIOB
+#define SPI_NSS_Pin GPIO_PIN_12
+#define SPI_NSS_GPIO_Port GPIOB
 #define HALL_IN1_Pin GPIO_PIN_8
 #define HALL_IN1_GPIO_Port GPIOA
 #define HALL_IN1_EXTI_IRQn EXTI9_5_IRQn
