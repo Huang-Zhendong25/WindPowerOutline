@@ -26,6 +26,7 @@ void MS5314_Write(uint8_t channel_addr, uint8_t mode, float voltage, bool sync)
 
 void MS5314_Set_Voltage(uint8_t channel, float voltage, bool sync)
 {
+    voltage = voltage > 1.5f ? 1.5f : (voltage < 0.0f ? 0.0f : voltage); // Clamp voltage to [0.0, 1.5]
     for (uint8_t channel_idx = 0; channel_idx < MS5314_CHANNEL_NUM; channel_idx++)
     {
         if (channel & ms5314_channels[channel_idx])

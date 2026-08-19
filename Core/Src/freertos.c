@@ -92,7 +92,7 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-  rs485_queue = xQueueCreate(10, sizeof(uint8_t) * RX_BUFFER_SIZE);
+  rs485_queue = xQueueCreate(10, sizeof(RS485_QueueMsg));
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -101,13 +101,13 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
-  //BaseType_t xReturned = xTaskCreate(RS485CommandTask, "RS485CommandTask", 128, NULL, osPriorityHigh, &xRS485CommandTaskHandle);
-  //if (xReturned != pdPASS)
-  //{
-  //  /* Task creation failed */
-  //  while (1)
-  //  {}
-  //}
+  BaseType_t xReturned = xTaskCreate(RS485CommandTask, "RS485CommandTask", 128, NULL, osPriorityHigh, &xRS485CommandTaskHandle);
+  if (xReturned != pdPASS)
+  {
+    /* Task creation failed */
+    while (1)
+    {}
+  }
 
   /* USER CODE END RTOS_THREADS */
 
@@ -157,6 +157,7 @@ void RS485CommandTask(void *argument)
       {
         BladeNums = msg.data[0];
         Laser_Disable(BladeNums);
+        Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL0);
         /* code */
         break;
       }

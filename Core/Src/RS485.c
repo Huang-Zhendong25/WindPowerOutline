@@ -40,6 +40,7 @@ uint8_t RS485_ProcessFrame(const uint8_t *frame, uint16_t len, RS485_QueueMsg *m
     if (frame[RS485_FRAME_INDEX_DATASIZE] == (len - RS485_FRAME_OVERHEAD_LEN))
     {
         memcpy(msg->data, frame + RS485_FRAME_HEAD_LEN, frame[RS485_FRAME_INDEX_DATASIZE]);
+        //msg->data[0] = frame[4];
     }
     return HAL_OK;
 }

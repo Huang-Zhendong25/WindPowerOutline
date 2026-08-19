@@ -186,7 +186,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
   {
     // Handle UART2 idle event
     BaseType_t xHigherPriorityTaskWoken = pdFALSE;
-    RS485_QueueMsg msg = {0};
+    RS485_QueueMsg msg;
     if (RS485_ProcessFrame(rx_buffer, Size, &msg) == HAL_OK)
     {
         // Process the valid frame
