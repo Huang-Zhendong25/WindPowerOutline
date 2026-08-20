@@ -20,6 +20,7 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "adc.h"
+#include "dma.h"
 #include "spi.h"
 #include "usart.h"
 #include "usb.h"
@@ -30,6 +31,7 @@
 #include "RS485.h"
 #include "MS5314.h"
 #include "queue.h"
+#include "timers.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -52,6 +54,7 @@
 /* USER CODE BEGIN PV */
 uint8_t rx_buffer[RX_BUFFER_SIZE];
 extern xQueueHandle rs485_queue;
+extern TimerHandle_t xHallSensorTimer[3];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -95,6 +98,7 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
+  MX_DMA_Init();
   MX_ADC1_Init();
   MX_SPI2_Init();
   MX_USART2_UART_Init();
@@ -199,22 +203,28 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
+  uint8_t hall_channel = 0;
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+
   switch (GPIO_Pin)
   {
   case HALL_IN1_Pin:
   {
+    hall_channel = 0;
     Laser_Enable(BLADE_NUM1);
     Laser_Set_Brightness(BLADE_NUM1, LASER_BRIGHTNESS_LEVEL1);
     break;
   }
   case HALL_IN2_Pin:
   {
+    hall_channel = 1;
     Laser_Enable(BLADE_NUM2);
     Laser_Set_Brightness(BLADE_NUM2, LASER_BRIGHTNESS_LEVEL1);
     break;
   }
   case HALL_IN3_Pin:
   {
+    hall_channel = 2;
     Laser_Enable(BLADE_NUM3);
     Laser_Set_Brightness(BLADE_NUM3, LASER_BRIGHTNESS_LEVEL1);
     break;
@@ -222,6 +232,12 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   default:
     break;
   }
+  /* if (xTimerIsTimerActiveFromISR(xHallSensorTimer[hall_channel]) == pdFALSE)
+  {
+    xTimerStopFromISR(xHallSensorTimer[hall_channel], &xHigherPriorityTaskWoken);
+  } */
+  xTimerStartFromISR(xHallSensorTimer[hall_channel], &xHigherPriorityTaskWoken);
+  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /* USER CODE END 4 */

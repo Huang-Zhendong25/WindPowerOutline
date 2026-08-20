@@ -40,11 +40,11 @@
 
 typedef struct
 {
-    uint8_t laser_status;      // Laser status for each blade
+    uint8_t all_laser_status;      // Laser status for all blades
+    uint8_t each_laser_status[3];   // Laser status for each blade
     uint8_t control_mode;      // Control mode (manual or serial)
-    uint8_t blade1_power_level[2]; // Power level for blade 1
-    uint8_t blade2_power_level[2]; // Power level for blade 2
-    uint8_t blade3_power_level[2]; // Power level for blade 3
+    uint8_t blade_power_level[3][2]; // Power level for each blade
+    float laser_temperature[3]; // Temperature for each laser
     char serial_number[11]; // Serial number of the device
     char firmware_version[6]; // Firmware version of the device
 } sys_info;

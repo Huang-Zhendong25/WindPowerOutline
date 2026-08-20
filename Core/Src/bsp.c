@@ -2,6 +2,8 @@
 #include "MS5314.h"
 #include "LM3409.h"
 #include "RS485.h"
+#include "adc_dma.h"
+#include "dma.h"
 #include <string.h>
 
 extern sys_info system_info;
@@ -15,6 +17,7 @@ uint16_t maxDACvalue = MAX_DAC_VALUE;
 void bsp_init(void)
 {
     MS5314_Init(&hspi2);
+    ADC_DMA_Init(&hadc1);
     //MS5314_Set_Voltage(MS5314_CHANNEL_ALL, 0.0f, true);
     //Laser_Disable(BLADE_NUM_ALL);
     memcpy(system_info.serial_number, SYS_INFO_SERIAL_NUMBER, sizeof(system_info.serial_number));
@@ -145,3 +148,5 @@ bool RS485_RespondFrame(uint8_t rs485_num, uint8_t cmd, uint8_t datasize, uint8_
     RS485_Transmit2Receive(rs485_num);
     return true;
 }
+
+

@@ -35,6 +35,7 @@ extern "C" {
 #include "usart.h"
 #include "spi.h"
 #include "bsp.h"
+#include "adc.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

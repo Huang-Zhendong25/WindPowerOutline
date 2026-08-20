@@ -26,9 +26,12 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "queue.h"
+#include "timers.h"
+#include "semphr.h"
 #include "RS485.h"
 #include "bsp.h"
 #include "MS5314.h"
+#include "adc_dma.h"
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -41,6 +44,11 @@
 /* USER CODE BEGIN PD */
 xQueueHandle rs485_queue;
 TaskHandle_t xRS485CommandTaskHandle = NULL;
+
+TimerHandle_t xHallSensorTimer[3];
+
+SemaphoreHandle_t xTemperatureReadSemaphore = NULL;
+TimerHandle_t xTemperatureReadTimer = NULL;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -51,6 +59,7 @@ TaskHandle_t xRS485CommandTaskHandle = NULL;
 /* Private variables ---------------------------------------------------------*/
 /* USER CODE BEGIN Variables */
 sys_info system_info;
+extern uint8_t blade_numbers[BLADE_NUMS];
 /* USER CODE END Variables */
 /* Definitions for defaultTask */
 osThreadId_t defaultTaskHandle;
@@ -63,6 +72,11 @@ const osThreadAttr_t defaultTask_attributes = {
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
 void RS485CommandTask(void *argument);
+
+void HallSensorTimerCallback(TimerHandle_t xTimer);
+
+void TemperatureReadTimerCallback(TimerHandle_t xTimer);
+void TemperatureReadTask(void *argument);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -85,10 +99,22 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_SEMAPHORES */
   /* add semaphores, ... */
+  xTemperatureReadSemaphore = xSemaphoreCreateBinary();
   /* USER CODE END RTOS_SEMAPHORES */
 
   /* USER CODE BEGIN RTOS_TIMERS */
   /* start timers, add new ones, ... */
+  xHallSensorTimer[0] = xTimerCreate("HallSensorTimer1", pdMS_TO_TICKS(1000), pdFALSE, (void *)0, HallSensorTimerCallback);
+  xHallSensorTimer[1] = xTimerCreate("HallSensorTimer2", pdMS_TO_TICKS(1000), pdFALSE, (void *)1, HallSensorTimerCallback);
+  xHallSensorTimer[2] = xTimerCreate("HallSensorTimer3", pdMS_TO_TICKS(1000), pdFALSE, (void *)2, HallSensorTimerCallback);
+
+  xTemperatureReadTimer = xTimerCreate("TemperatureReadTimer", pdMS_TO_TICKS(3000), pdTRUE, NULL, TemperatureReadTimerCallback);
+  if (xTimerStart(xTemperatureReadTimer, 0) != pdPASS)
+  {
+    // Handle error in starting the timer
+    while (1)
+    {}
+  }
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
@@ -103,6 +129,14 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
   BaseType_t xReturned = xTaskCreate(RS485CommandTask, "RS485CommandTask", 128, NULL, osPriorityHigh, &xRS485CommandTaskHandle);
+  if (xReturned != pdPASS)
+  {
+    /* Task creation failed */
+    while (1)
+    {}
+  }
+
+  xReturned = xTaskCreate(TemperatureReadTask, "TemperatureReadTask", 128, NULL, osPriorityNormal2, NULL);
   if (xReturned != pdPASS)
   {
     /* Task creation failed */
@@ -159,8 +193,15 @@ void RS485CommandTask(void *argument)
         Laser_Disable(BladeNums);
         if (Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL0))
         {
-          system_info.laser_status &= (~BladeNums);
-          RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_OFF, 1, &system_info.laser_status);
+          system_info.all_laser_status &= (~BladeNums);
+          for (uint8_t blade_idx = 0; blade_idx < BLADE_NUMS; blade_idx++)
+          {
+              if (BladeNums & blade_numbers[blade_idx])
+              {
+                  system_info.each_laser_status[blade_idx] = 0;
+              }
+          }
+          RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_OFF, 1, &system_info.all_laser_status);
         }
         else
         {
@@ -176,8 +217,15 @@ void RS485CommandTask(void *argument)
         Laser_Enable(BladeNums);
         if (LaserSetResult)
         {
-          system_info.laser_status |= BladeNums;
-          RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_ON, 1, &system_info.laser_status);
+          system_info.all_laser_status |= BladeNums;
+          for (uint8_t blade_idx = 0; blade_idx < BLADE_NUMS; blade_idx++)
+          {
+              if (BladeNums & blade_numbers[blade_idx])
+              {
+                  system_info.each_laser_status[blade_idx] = 0x01;
+              }
+          }
+          RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_ON, 1, &system_info.all_laser_status);
         }
         else
         {
@@ -215,52 +263,109 @@ void RS485CommandTask(void *argument)
         uint16_t powerlevel = (msg.data[1] << 8) | msg.data[2]; // Combine two bytes to form a 16-bit power level
         Laser_Set_PowerLevel(blade_num, powerlevel);
 
-        if (blade_num | BLADE_NUM1)
+        for (uint8_t blade_idx = 0; blade_idx < BLADE_NUMS; blade_idx++)
         {
-          system_info.blade1_power_level[0] = msg.data[1];
-          system_info.blade1_power_level[1] = msg.data[2];
+            if (blade_num & blade_numbers[blade_idx])
+            {
+                system_info.blade_power_level[blade_idx][0] = msg.data[1];
+                system_info.blade_power_level[blade_idx][1] = msg.data[2];
+            }
         }
-        if (blade_num | BLADE_NUM2)
+        for (uint8_t i = 0; i < BLADE_NUMS; i++)
         {
-          system_info.blade2_power_level[0] = msg.data[1];
-          system_info.blade2_power_level[1] = msg.data[2];
+            memcpy(power_levels + (i * 2), system_info.blade_power_level[i], 2);
         }
-        if (blade_num | BLADE_NUM3)
-        {
-          system_info.blade3_power_level[0] = msg.data[1];
-          system_info.blade3_power_level[1] = msg.data[2];
-        }
-        memcpy(power_levels, &system_info.blade1_power_level, 2);
-        memcpy(power_levels + 2, &system_info.blade2_power_level, 2);
-        memcpy(power_levels + 4, &system_info.blade3_power_level, 2);
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_SET_POWER_LEVEL, 6, power_levels);
         break;
       }
       case RS485_FRAME_CMD_GET_POWER_LEVEL:
       {
-        uint8_t power_levels[6] = {system_info.blade1_power_level[0], system_info.blade1_power_level[1],
-                                  system_info.blade2_power_level[0], system_info.blade2_power_level[1],
-                                  system_info.blade3_power_level[0], system_info.blade3_power_level[1]};
+        uint8_t power_levels[6] = {system_info.blade_power_level[0][0], system_info.blade_power_level[0][1],
+                                  system_info.blade_power_level[1][0], system_info.blade_power_level[1][1],
+                                  system_info.blade_power_level[2][0], system_info.blade_power_level[2][1]};
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_POWER_LEVEL, 6, power_levels);
         break;
       }
       case RS485_FRAME_CMD_GET_DEVICE_INFO:
       {
         uint8_t device_info[23];
-        memcpy(device_info, &system_info.blade1_power_level, 2);
-        memcpy(device_info + 2, &system_info.blade2_power_level, 2);
-        memcpy(device_info + 4, &system_info.blade3_power_level, 2);
+        memcpy(device_info, &system_info.blade_power_level[0], 2);
+        memcpy(device_info + 2, &system_info.blade_power_level[1], 2);
+        memcpy(device_info + 4, &system_info.blade_power_level[2], 2);
         memcpy(device_info + 6, system_info.serial_number, 11);
         memcpy(device_info + 17, system_info.firmware_version, 6);
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_DEVICE_INFO, 23, device_info);
         break;
+      }
+      case RS485_FRAME_CMD_GET_SYS_STATE:
+      {
+        uint8_t sys_state[21];
+
+        for (uint8_t i = 0; i < BLADE_NUMS; i++)
+        {
+            memcpy(sys_state + (i * 4), &system_info.laser_temperature[i], 4);
+            memcpy(sys_state + 12 + (i * 2), system_info.blade_power_level[i], 2);
+            memcpy(sys_state + 18 + i, &system_info.each_laser_status[i], 1);
+        }
+        RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_SYS_STATE, 21, sys_state);
       }
       default:
         break;
       }
     } 
   }
-  
+}
+
+void TemperatureReadTask(void *argument)
+{
+  uint16_t adc_values[3];
+
+  while (1)
+  {
+    if (xSemaphoreTake(xTemperatureReadSemaphore, portMAX_DELAY) == pdTRUE)
+    {
+      ADC_DMA_Start();
+
+      uint32_t timeout = pdMS_TO_TICKS(100);
+      TickType_t start = xTaskGetTickCount();
+
+      while (!ADC_DMA_IsComplete())
+      {
+        if ((xTaskGetTickCount() - start) > timeout)
+        {
+          break;
+        }
+        vTaskDelay(pdMS_TO_TICKS(1));
+      }
+
+      if (!ADC_DMA_IsComplete())
+      {
+        ADC_DMA_GetValues(adc_values);
+        for (uint8_t i = 0; i < ADC_DMA_BUFFER_SIZE; i++)
+        {
+          //system_info.laser_temperature[i] = NTC_ADC2Temperature(adc_values[i]);  
+        }
+      }
+    }
+  }
+}
+
+void HallSensorTimerCallback(TimerHandle_t xTimer)
+{
+    uint32_t timer_id = (uint32_t)pvTimerGetTimerID(xTimer);
+    if (timer_id < 3)
+    {
+        Laser_Disable(blade_numbers[timer_id]);
+        system_info.all_laser_status &= (~blade_numbers[timer_id]);
+        system_info.each_laser_status[timer_id] = 0;
+    }
+}
+
+void TemperatureReadTimerCallback(TimerHandle_t xTimer)
+{
+  BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+  xSemaphoreGiveFromISR(xTemperatureReadSemaphore, &xHigherPriorityTaskWoken);
+  portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 
 /* USER CODE END Application */
