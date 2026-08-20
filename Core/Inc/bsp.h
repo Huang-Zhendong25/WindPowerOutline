@@ -32,6 +32,12 @@
 #define SYS_INFO_SERIAL_NUMBER   "FD202606001"
 #define SYS_INFO_FIRMWARE_VERSION "V1.0.0"
 
+#define MAX_DAC_VALUE 757
+#define MAX_POWER_LEVEL 4095
+#define MAX_CURRENT 3.5f
+#define RSNS_VALUE    0.068f
+#define RIPPLE_CURRENT 0.05f
+
 typedef struct
 {
     uint8_t laser_status;      // Laser status for each blade
@@ -48,6 +54,7 @@ void bsp_init(void);
 void Laser_Enable(uint8_t bladenums);
 void Laser_Disable(uint8_t bladenums);
 bool Laser_Set_Brightness(uint8_t bladenums, float Brightness);
+bool Laser_Set_PowerLevel(uint8_t bladenums, uint16_t powerlevel);
 void RS485_Receive2Transmit(uint8_t Rs485Num);
 void RS485_Transmit2Receive(uint8_t Rs485Num);
 bool RS485_RespondFrame(uint8_t rs485_num, uint8_t cmd, uint8_t datasize, uint8_t *data);

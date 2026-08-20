@@ -10,13 +10,23 @@ uint8_t blade_numbers[BLADE_NUMS] = {BLADE_NUM1, BLADE_NUM2, BLADE_NUM3};
 uint16_t laser_numbers[LASER_NUMS] = {LASER_NUM1, LASER_NUM2, LASER_NUM3};
 uint8_t rs485_numbers[RS485_NUMS] = {RS485_NUM1, RS485_NUM2};
 uint8_t rs485_en_pins[RS485_NUMS] = {RS485_EN1_Pin, RS485_EN2_Pin};
+uint16_t maxDACvalue = MAX_DAC_VALUE;
 
 void bsp_init(void)
 {
     MS5314_Init(&hspi2);
-    MS5314_Set_Voltage(MS5314_CHANNEL_ALL, 0.0f, true);
+    //MS5314_Set_Voltage(MS5314_CHANNEL_ALL, 0.0f, true);
+    //Laser_Disable(BLADE_NUM_ALL);
     memcpy(system_info.serial_number, SYS_INFO_SERIAL_NUMBER, sizeof(system_info.serial_number));
     memcpy(system_info.firmware_version, SYS_INFO_FIRMWARE_VERSION, sizeof(system_info.firmware_version));
+
+    //Laser_PowerLevel_Calculate(MAX_CURRENT, RIPPLE_CURRENT, RSNS_VALUE);
+}
+
+void Laser_PowerLevel_Calculate(float maxCurrent, float CurrentRipple, float RSNS)
+{
+    float VoltageDAC = 5.0 * RSNS * (maxCurrent + CurrentRipple / 2.0f);
+    maxDACvalue = (uint16_t)(VoltageDAC * 1024.0f / MS5314_REF_VOLTAGE);
 }
 
 void Laser_Enable(uint8_t bladenums)
@@ -60,7 +70,31 @@ bool Laser_Set_Brightness(uint8_t bladenums, float Brightness)
             channel |= ms5314_channels[BLADE_NUMS - 1 - i];
         }
     }
-    MS5314_Set_Voltage(channel, Brightness, true);
+    if (!MS5314_Set_Voltage(channel, Brightness, true))
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool Laser_Set_PowerLevel(uint8_t bladenums, uint16_t powerlevel)
+{
+    uint8_t channel = 0;
+    powerlevel = (powerlevel > MAX_POWER_LEVEL) ? MAX_POWER_LEVEL : powerlevel; // Clamp power level to MAX_POWER_LEVEL
+    uint16_t dac_decval = (uint16_t)((powerlevel * maxDACvalue) / MAX_POWER_LEVEL); // Convert power level to DAC value
+
+    for (uint8_t i = 0; i < BLADE_NUMS; i++)
+    {
+        if (bladenums & blade_numbers[i])
+        {
+            channel |= ms5314_channels[BLADE_NUMS - 1 - i];
+        }
+    }
+    if (!MS5314_Set_DECValue(channel, dac_decval, true))
+    {
+        return false;
+    }
 
     return true;
 }

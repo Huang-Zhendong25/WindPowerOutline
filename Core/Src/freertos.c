@@ -29,6 +29,7 @@
 #include "RS485.h"
 #include "bsp.h"
 #include "MS5314.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -210,7 +211,29 @@ void RS485CommandTask(void *argument)
       }
       case RS485_FRAME_CMD_SET_POWER_LEVEL:
       {
-        
+        uint8_t blade_num = msg.data[0], power_levels[6];
+        uint16_t powerlevel = (msg.data[1] << 8) | msg.data[2]; // Combine two bytes to form a 16-bit power level
+        Laser_Set_PowerLevel(blade_num, powerlevel);
+
+        if (blade_num | BLADE_NUM1)
+        {
+          system_info.blade1_power_level[0] = msg.data[1];
+          system_info.blade1_power_level[1] = msg.data[2];
+        }
+        if (blade_num | BLADE_NUM2)
+        {
+          system_info.blade2_power_level[0] = msg.data[1];
+          system_info.blade2_power_level[1] = msg.data[2];
+        }
+        if (blade_num | BLADE_NUM3)
+        {
+          system_info.blade3_power_level[0] = msg.data[1];
+          system_info.blade3_power_level[1] = msg.data[2];
+        }
+        memcpy(power_levels, &system_info.blade1_power_level, 2);
+        memcpy(power_levels + 2, &system_info.blade2_power_level, 2);
+        memcpy(power_levels + 4, &system_info.blade3_power_level, 2);
+        RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_SET_POWER_LEVEL, 6, power_levels);
         break;
       }
       case RS485_FRAME_CMD_GET_POWER_LEVEL:
@@ -223,6 +246,13 @@ void RS485CommandTask(void *argument)
       }
       case RS485_FRAME_CMD_GET_DEVICE_INFO:
       {
+        uint8_t device_info[23];
+        memcpy(device_info, &system_info.blade1_power_level, 2);
+        memcpy(device_info + 2, &system_info.blade2_power_level, 2);
+        memcpy(device_info + 4, &system_info.blade3_power_level, 2);
+        memcpy(device_info + 6, system_info.serial_number, 11);
+        memcpy(device_info + 17, system_info.firmware_version, 6);
+        RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_DEVICE_INFO, 23, device_info);
         break;
       }
       default:

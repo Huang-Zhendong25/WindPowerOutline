@@ -31,9 +31,15 @@
                                                             (((mode) & 0x01) << 13) | \
                                                             (((update) & 0x01) << 12) | \
                                                             ((MS5314_VOLTAGE_TO_DATA(voltage) & 0x03FF) << 2)))
+                                                            
+#define MS5314_FRAME_BY_DEC(channel, mode, update, dec_value)	((uint16_t)((((channel) & 0x03) << 14) | \
+                                                            (((mode) & 0x01) << 13) | \
+                                                            (((update) & 0x01) << 12) | \
+                                                            ((dec_value & 0x03FF) << 2)))
 
 void MS5314_Init(SPI_HandleTypeDef *hspi);
-void MS5314_Write(uint8_t channel, uint8_t mode, float voltage, bool sync);
-void MS5314_Set_Voltage(uint8_t channel, float voltage, bool sync);
+bool MS5314_Write(uint8_t channel, uint8_t mode, const float *voltage, const uint16_t *dec_value, const bool sync);
+bool MS5314_Set_Voltage(uint8_t channel, float voltage, bool sync);
+bool MS5314_Set_DECValue(uint8_t channel, uint16_t dec_value, bool sync);
 
 #endif
