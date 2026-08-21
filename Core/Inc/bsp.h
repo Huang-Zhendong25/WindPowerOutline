@@ -38,6 +38,9 @@
 #define RSNS_VALUE    0.068f
 #define RIPPLE_CURRENT 0.05f
 
+#define CONFIG_INFO_START_ADDR      0x0800f000     //flash address of configuration information
+#define CONFIG_INFO_WORD_SIZE       (sizeof(config_info) / 4)
+
 typedef struct
 {
     uint8_t all_laser_status;      // Laser status for all blades
@@ -49,6 +52,12 @@ typedef struct
     char firmware_version[6]; // Firmware version of the device
 } sys_info;
 
+typedef struct 
+{
+    uint8_t blade_power_levels[3][2];
+    uint8_t state;
+} config_info;
+
 
 void bsp_init(void);
 void Laser_Enable(uint8_t bladenums);
@@ -58,5 +67,8 @@ bool Laser_Set_PowerLevel(uint8_t bladenums, uint16_t powerlevel);
 void RS485_Receive2Transmit(uint8_t Rs485Num);
 void RS485_Transmit2Receive(uint8_t Rs485Num);
 bool RS485_RespondFrame(uint8_t rs485_num, uint8_t cmd, uint8_t datasize, uint8_t *data);
+bool ConfigInfo_Load(config_info *info);
+bool ConfigInfo_Save(const config_info *info);
+bool ConfigInfo_ResetToDefault(void);
 
 #endif

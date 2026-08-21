@@ -77,7 +77,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+  config_info ConfigInfo = {.state = 1};
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -108,6 +108,7 @@ int main(void)
   bsp_init();
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);    //使能UART2空闲中断
   HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
+  ConfigInfo_Save(&ConfigInfo);
   /* USER CODE END 2 */
 
   /* Init scheduler */

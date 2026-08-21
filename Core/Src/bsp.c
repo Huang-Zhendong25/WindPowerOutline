@@ -1,10 +1,12 @@
+#include <string.h>
 #include "bsp.h"
 #include "MS5314.h"
 #include "LM3409.h"
 #include "RS485.h"
 #include "adc_dma.h"
 #include "dma.h"
-#include <string.h>
+#include "flash_drv.h"
+
 
 extern sys_info system_info;
 extern uint8_t ms5314_channels[];
@@ -13,6 +15,10 @@ uint16_t laser_numbers[LASER_NUMS] = {LASER_NUM1, LASER_NUM2, LASER_NUM3};
 uint8_t rs485_numbers[RS485_NUMS] = {RS485_NUM1, RS485_NUM2};
 uint8_t rs485_en_pins[RS485_NUMS] = {RS485_EN1_Pin, RS485_EN2_Pin};
 uint16_t maxDACvalue = MAX_DAC_VALUE;
+static const config_info default_config_info = {
+    .blade_power_levels = {{0}},
+};
+
 
 void bsp_init(void)
 {
@@ -149,4 +155,26 @@ bool RS485_RespondFrame(uint8_t rs485_num, uint8_t cmd, uint8_t datasize, uint8_
     return true;
 }
 
+bool ConfigInfo_Load(config_info *info)
+{
+    uint32_t flash_data[CONFIG_INFO_WORD_SIZE];
+    
+    bool status = Flash_ReadBuffer(CONFIG_INFO_START_ADDR, flash_data, CONFIG_INFO_WORD_SIZE);
+    memcpy(info, flash_data, sizeof(config_info));
 
+    return status;
+}
+
+bool ConfigInfo_Save(const config_info *info)
+{
+    uint32_t flash_data[CONFIG_INFO_WORD_SIZE];
+
+    memcpy(flash_data, info, sizeof(config_info));
+
+    return Flash_WriteBuffer(CONFIG_INFO_START_ADDR, flash_data, CONFIG_INFO_WORD_SIZE);
+}
+
+bool ConfigInfo_ResetToDefault(void)
+{
+    return ConfigInfo_Save(&default_config_info);
+}

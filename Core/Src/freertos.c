@@ -289,9 +289,9 @@ void RS485CommandTask(void *argument)
       case RS485_FRAME_CMD_GET_DEVICE_INFO:
       {
         uint8_t device_info[23];
-        memcpy(device_info, &system_info.blade_power_level[0], 2);
-        memcpy(device_info + 2, &system_info.blade_power_level[1], 2);
-        memcpy(device_info + 4, &system_info.blade_power_level[2], 2);
+        memcpy(device_info, system_info.blade_power_level[0], 2);
+        memcpy(device_info + 2, system_info.blade_power_level[1], 2);
+        memcpy(device_info + 4, system_info.blade_power_level[2], 2);
         memcpy(device_info + 6, system_info.serial_number, 11);
         memcpy(device_info + 17, system_info.firmware_version, 6);
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_DEVICE_INFO, 23, device_info);
@@ -304,7 +304,9 @@ void RS485CommandTask(void *argument)
         for (uint8_t i = 0; i < BLADE_NUMS; i++)
         {
             memcpy(sys_state + (i * 4), &system_info.laser_temperature[i], 4);
-            memcpy(sys_state + 12 + (i * 2), system_info.blade_power_level[i], 2);
+            //memcpy(sys_state + 12 + (i * 2), system_info.blade_power_level[i], 2);
+            sys_state[12 + i * 2] = system_info.blade_power_level[i][1];
+            sys_state[12 + i * 2 + 1] = system_info.blade_power_level[i][0];
             memcpy(sys_state + 18 + i, &system_info.each_laser_status[i], 1);
         }
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_SYS_STATE, 21, sys_state);
