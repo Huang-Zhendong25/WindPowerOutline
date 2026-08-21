@@ -81,7 +81,7 @@
           </BeforeMake>
           <AfterMake>
             <RunUserProg1>1</RunUserProg1>
-            <RunUserProg2>0</RunUserProg2>
+            <RunUserProg2>1</RunUserProg2>
             <UserProg1Name>fromelf.exe --bin -o "$L@L.bin" "#L"</UserProg1Name>
             <UserProg2Name></UserProg2Name>
             <UserProg1Dos16Mode>0</UserProg1Dos16Mode>
@@ -411,6 +411,16 @@
               <FilePath>..\Core\Src\bsp.c</FilePath>
             </File>
             <File>
+              <FileName>adc_dma.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\adc_dma.c</FilePath>
+            </File>
+            <File>
+              <FileName>flash_drv.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\flash_drv.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>../Core/Src/main.c</FilePath>
@@ -614,16 +624,6 @@
                   </Cads>
                 </FileArmAds>
               </FileOption>
-            </File>
-            <File>
-              <FileName>adc_dma.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\adc_dma.c</FilePath>
-            </File>
-            <File>
-              <FileName>flash_drv.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>..\Core\Src\flash_drv.c</FilePath>
             </File>
           </Files>
         </Group>

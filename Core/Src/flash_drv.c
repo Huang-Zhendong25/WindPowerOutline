@@ -37,14 +37,21 @@ bool Flash_WriteWord(uint32_t addr, uint32_t data)
 }
 
 /*Write multiple words once*/
-bool Flash_WriteBuffer(uint32_t addr, uint32_t *pData, uint32_t word_num)
+bool Flash_WriteBuffer(uint32_t addr, uint32_t *pData, uint32_t word_num, bool erase)
 {
     if (word_num == 0)
         return false;
-    bool status = FlashErasePage(addr);
-    if (FlashErasePage(addr) == false)
-        return false;
+    bool status = true;
+
+    if (erase)
+    {
+        status = FlashErasePage(addr);
+        if (status == false)
+            return false;
+    }
+    
     HAL_FLASH_Unlock();
+    //__disable_irq();
     for (uint32_t i = 0; i < word_num; i++)
     {
         if(HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, addr + i * 4, pData[i]) != HAL_OK)
@@ -53,6 +60,7 @@ bool Flash_WriteBuffer(uint32_t addr, uint32_t *pData, uint32_t word_num)
             break;
         }
     }
+    //__enable_irq();
     HAL_FLASH_Lock();
     
     return status;

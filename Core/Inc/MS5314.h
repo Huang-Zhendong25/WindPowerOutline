@@ -37,8 +37,6 @@
                                                             (((update) & 0x01) << 12) | \
                                                             ((dec_value & 0x03FF) << 2)))
 
-
-
 void MS5314_Init(SPI_HandleTypeDef *hspi);
 bool MS5314_Write(uint8_t channel, uint8_t mode, const float *voltage, const uint16_t *dec_value, const bool sync);
 bool MS5314_Set_Voltage(uint8_t channel, float voltage, bool sync);

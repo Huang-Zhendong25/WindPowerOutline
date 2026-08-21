@@ -18,6 +18,7 @@ uint16_t maxDACvalue = MAX_DAC_VALUE;
 static const config_info default_config_info = {
     .blade_power_levels = {{0}},
 };
+config_info ConfigInfo = {0};
 
 
 void bsp_init(void)
@@ -29,7 +30,8 @@ void bsp_init(void)
     memcpy(system_info.serial_number, SYS_INFO_SERIAL_NUMBER, sizeof(system_info.serial_number));
     memcpy(system_info.firmware_version, SYS_INFO_FIRMWARE_VERSION, sizeof(system_info.firmware_version));
 
-    //Laser_PowerLevel_Calculate(MAX_CURRENT, RIPPLE_CURRENT, RSNS_VALUE);
+    ConfigInfo_Load(&ConfigInfo);
+    FlashErasePage(CONFIG_INFO_START_ADDR);
 }
 
 void Laser_PowerLevel_Calculate(float maxCurrent, float CurrentRipple, float RSNS)
@@ -168,10 +170,11 @@ bool ConfigInfo_Load(config_info *info)
 bool ConfigInfo_Save(const config_info *info)
 {
     uint32_t flash_data[CONFIG_INFO_WORD_SIZE];
-
+    
     memcpy(flash_data, info, sizeof(config_info));
+    //memset((uint8_t *)flash_data + sizeof(config_info), 0xff, CONFIG_INFO_WORD_SIZE * 4 - sizeof(config_info));
 
-    return Flash_WriteBuffer(CONFIG_INFO_START_ADDR, flash_data, CONFIG_INFO_WORD_SIZE);
+    return Flash_WriteBuffer(CONFIG_INFO_START_ADDR, flash_data, CONFIG_INFO_WORD_SIZE, false);
 }
 
 bool ConfigInfo_ResetToDefault(void)

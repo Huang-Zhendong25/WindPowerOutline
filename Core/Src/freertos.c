@@ -165,10 +165,10 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET);
-    vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
+    /* HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET);
+    vTaskDelay(pdMS_TO_TICKS(500));
     HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
-    vTaskDelay(pdMS_TO_TICKS(500)); // Delay for 1000 milliseconds (1 second)
+    vTaskDelay(pdMS_TO_TICKS(500)); */
   }
   /* USER CODE END StartDefaultTask */
 }

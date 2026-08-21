@@ -55,6 +55,8 @@
 uint8_t rx_buffer[RX_BUFFER_SIZE];
 extern xQueueHandle rs485_queue;
 extern TimerHandle_t xHallSensorTimer[3];
+//config_info ConfigInfo = {.state = 0, .blade_power_levels = {{0}}};
+//config_info ConfigInfo1 = {.blade_power_levels = {{1, 1}, {2, 2}, {3, 3}}};
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -77,7 +79,8 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  config_info ConfigInfo = {.state = 1};
+  
+  
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -108,7 +111,20 @@ int main(void)
   bsp_init();
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);    //使能UART2空闲中断
   HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
-  ConfigInfo_Save(&ConfigInfo);
+
+  PWR_PVDTypeDef sConfigPVD = {.Mode = PWR_PVD_MODE_IT_RISING_FALLING, .PVDLevel = PWR_PVDLEVEL_7};
+  __HAL_RCC_PWR_CLK_ENABLE();
+  HAL_PWR_ConfigPVD(&sConfigPVD);
+  HAL_PWR_EnablePVD();
+  HAL_NVIC_SetPriority(PVD_IRQn, 2, 2);
+  HAL_NVIC_EnableIRQ(PVD_IRQn);
+
+  //HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
+  //ConfigInfo_Save(&ConfigInfo1);
+  //ConfigInfo_ResetToDefault();
+  //ConfigInfo_Load(&ConfigInfo);
+  /* if (ConfigInfo.state)
+    HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET); */
   /* USER CODE END 2 */
 
   /* Init scheduler */
@@ -239,6 +255,19 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   } */
   xTimerStartFromISR(xHallSensorTimer[hall_channel], &xHigherPriorityTaskWoken);
   portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void HAL_PWR_PVDCallback(void)
+{
+  if (__HAL_PWR_GET_FLAG(PWR_FLAG_PVDO) != RESET)
+  {
+    config_info ConfigInfo1 = {.blade_power_levels = {{10, 10}, {2, 2}, {3, 3}}};
+    /* __HAL_PWR_CLEAR_FLAG(PWR_FLAG_PVDO);
+    __disable_irq(); */
+    if (ConfigInfo_Save(&ConfigInfo1))
+      HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET);
+    /* __enable_irq(); */
+  }
 }
 
 /* USER CODE END 4 */

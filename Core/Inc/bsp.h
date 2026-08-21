@@ -39,7 +39,7 @@
 #define RIPPLE_CURRENT 0.05f
 
 #define CONFIG_INFO_START_ADDR      0x0800f000     //flash address of configuration information
-#define CONFIG_INFO_WORD_SIZE       (sizeof(config_info) / 4)
+#define CONFIG_INFO_WORD_SIZE       (sizeof(config_info) / 4 + 1)
 
 typedef struct
 {
@@ -55,8 +55,10 @@ typedef struct
 typedef struct 
 {
     uint8_t blade_power_levels[3][2];
-    uint8_t state;
+    //uint8_t state;
 } config_info;
+
+extern config_info ConfigInfo;
 
 
 void bsp_init(void);
