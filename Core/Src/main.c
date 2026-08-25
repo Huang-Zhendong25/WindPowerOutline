@@ -21,6 +21,7 @@
 #include "cmsis_os.h"
 #include "adc.h"
 #include "dma.h"
+#include "iwdg.h"
 #include "spi.h"
 #include "usart.h"
 #include "usb.h"
@@ -79,7 +80,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  
+  //SCB->VTOR = APP_FLASH_STARTADDR;
   
   /* USER CODE END 1 */
 
@@ -107,17 +108,19 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_USB_PCD_Init();
+  MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   bsp_init();
+  //HAL_Delay(6);
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);    //使能UART2空闲中断
   HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
 
-  PWR_PVDTypeDef sConfigPVD = {.Mode = PWR_PVD_MODE_IT_RISING_FALLING, .PVDLevel = PWR_PVDLEVEL_7};
+  /* PWR_PVDTypeDef sConfigPVD = {.Mode = PWR_PVD_MODE_IT_RISING_FALLING, .PVDLevel = PWR_PVDLEVEL_7};
   __HAL_RCC_PWR_CLK_ENABLE();
   HAL_PWR_ConfigPVD(&sConfigPVD);
   HAL_PWR_EnablePVD();
   HAL_NVIC_SetPriority(PVD_IRQn, 2, 2);
-  HAL_NVIC_EnableIRQ(PVD_IRQn);
+  HAL_NVIC_EnableIRQ(PVD_IRQn); */
 
   //HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
   //ConfigInfo_Save(&ConfigInfo1);
@@ -162,10 +165,11 @@ void SystemClock_Config(void)
   /** Initializes the RCC Oscillators according to the specified parameters
   * in the RCC_OscInitTypeDef structure.
   */
-  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+  RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_LSI|RCC_OSCILLATORTYPE_HSE;
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.HSEPredivValue = RCC_HSE_PREDIV_DIV1;
   RCC_OscInitStruct.HSIState = RCC_HSI_ON;
+  RCC_OscInitStruct.LSIState = RCC_LSI_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLMUL = RCC_PLL_MUL9;

@@ -28,10 +28,12 @@
 #include "queue.h"
 #include "timers.h"
 #include "semphr.h"
+#include "iwdg.h"
 #include "RS485.h"
 #include "bsp.h"
 #include "MS5314.h"
 #include "adc_dma.h"
+#include "flash_drv.h"
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -49,6 +51,8 @@ TimerHandle_t xHallSensorTimer[3];
 
 SemaphoreHandle_t xTemperatureReadSemaphore = NULL;
 TimerHandle_t xTemperatureReadTimer = NULL;
+
+TimerHandle_t xWatchdogTimer = NULL;
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -77,6 +81,8 @@ void HallSensorTimerCallback(TimerHandle_t xTimer);
 
 void TemperatureReadTimerCallback(TimerHandle_t xTimer);
 void TemperatureReadTask(void *argument);
+
+void WatchdogTimerCallback(TimerHandle_t xTimer);
 /* USER CODE END FunctionPrototypes */
 
 void StartDefaultTask(void *argument);
@@ -109,11 +115,21 @@ void MX_FREERTOS_Init(void) {
   xHallSensorTimer[2] = xTimerCreate("HallSensorTimer3", pdMS_TO_TICKS(1000), pdFALSE, (void *)2, HallSensorTimerCallback);
 
   xTemperatureReadTimer = xTimerCreate("TemperatureReadTimer", pdMS_TO_TICKS(3000), pdTRUE, NULL, TemperatureReadTimerCallback);
-  if (xTimerStart(xTemperatureReadTimer, 0) != pdPASS)
+  if (xTimerStart(xTemperatureReadTimer, 0) != pdPASS)    //start timer
   {
     // Handle error in starting the timer
     while (1)
     {}
+  }
+
+  xWatchdogTimer = xTimerCreate("WatchdogTimer", pdMS_TO_TICKS(2000), pdTRUE, NULL, WatchdogTimerCallback);
+  if (xTimerStart(xWatchdogTimer, 0) != pdPASS)
+  {
+    while (1)
+    {
+      
+    }
+    
   }
   /* USER CODE END RTOS_TIMERS */
 
@@ -165,10 +181,10 @@ void StartDefaultTask(void *argument)
   /* Infinite loop */
   for(;;)
   {
-    /* HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET);
+    HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET);
     vTaskDelay(pdMS_TO_TICKS(500));
     HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
-    vTaskDelay(pdMS_TO_TICKS(500)); */
+    vTaskDelay(pdMS_TO_TICKS(500));
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -255,6 +271,7 @@ void RS485CommandTask(void *argument)
       case RS485_FRAME_CMD_GET_CONTROL_MODE:
       {
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_CONTROL_MODE, 1, &system_info.control_mode);
+
         break;
       }
       case RS485_FRAME_CMD_SET_POWER_LEVEL:
@@ -276,6 +293,7 @@ void RS485CommandTask(void *argument)
             memcpy(power_levels + (i * 2), system_info.blade_power_level[i], 2);
         }
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_SET_POWER_LEVEL, 6, power_levels);
+
         break;
       }
       case RS485_FRAME_CMD_GET_POWER_LEVEL:
@@ -284,6 +302,7 @@ void RS485CommandTask(void *argument)
                                   system_info.blade_power_level[1][0], system_info.blade_power_level[1][1],
                                   system_info.blade_power_level[2][0], system_info.blade_power_level[2][1]};
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_POWER_LEVEL, 6, power_levels);
+
         break;
       }
       case RS485_FRAME_CMD_GET_DEVICE_INFO:
@@ -295,6 +314,7 @@ void RS485CommandTask(void *argument)
         memcpy(device_info + 6, system_info.serial_number, 11);
         memcpy(device_info + 17, system_info.firmware_version, 6);
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_DEVICE_INFO, 23, device_info);
+
         break;
       }
       case RS485_FRAME_CMD_GET_SYS_STATE:
@@ -310,6 +330,18 @@ void RS485CommandTask(void *argument)
             memcpy(sys_state + 18 + i, &system_info.each_laser_status[i], 1);
         }
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_GET_SYS_STATE, 21, sys_state);
+
+        break;
+      }
+      case RS485_FRAME_CMD_FIRMWARE_UPGRADE:
+      {
+        uint32_t upgrade_flag_magic = FIRMWIRE_UPGRADE_FLAGE_MAGIC;
+        
+        if (Flash_WriteBuffer(FIRMWIRE_UPGRADE_FLAG_ADDR, &upgrade_flag_magic, 1, true) == false)
+          return;
+        NVIC_SystemReset();
+
+        break;
       }
       default:
         break;
@@ -368,6 +400,11 @@ void TemperatureReadTimerCallback(TimerHandle_t xTimer)
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
   xSemaphoreGiveFromISR(xTemperatureReadSemaphore, &xHigherPriorityTaskWoken);
   portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
+}
+
+void WatchdogTimerCallback(TimerHandle_t xTimer)
+{
+  HAL_IWDG_Refresh(&hiwdg);
 }
 
 /* USER CODE END Application */

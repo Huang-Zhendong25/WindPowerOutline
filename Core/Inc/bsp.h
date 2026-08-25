@@ -41,6 +41,11 @@
 #define CONFIG_INFO_START_ADDR      0x0800f000     //flash address of configuration information
 #define CONFIG_INFO_WORD_SIZE       (sizeof(config_info) / 4 + 1)
 
+#define FIRMWIRE_UPGRADE_FLAG_ADDR      0x0800f000
+#define FIRMWIRE_UPGRADE_FLAGE_MAGIC    0x5a5a5a5a
+#define APP_FLASH_STARTADDR             0x08006000
+#define APP_MAX_SIZE                    0x0000a000
+
 typedef struct
 {
     uint8_t all_laser_status;      // Laser status for all blades
