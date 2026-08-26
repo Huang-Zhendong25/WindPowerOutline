@@ -23,6 +23,7 @@ config_info ConfigInfo = {0};
 
 void bsp_init(void)
 {
+    RS485_Init();
     MS5314_Init(&hspi2);
     ADC_DMA_Init(&hadc1);
     //MS5314_Set_Voltage(MS5314_CHANNEL_ALL, 0.0f, true);

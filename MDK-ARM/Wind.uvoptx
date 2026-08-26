@@ -150,18 +150,18 @@
         <Bp>
           <Number>0</Number>
           <Type>0</Type>
-          <LineNumber>320</LineNumber>
-          <EnabledFlag>0</EnabledFlag>
-          <Address>134257258</Address>
+          <LineNumber>206</LineNumber>
+          <EnabledFlag>1</EnabledFlag>
+          <Address>134253234</Address>
           <ByteObject>0</ByteObject>
           <HtxType>0</HtxType>
           <ManyObjects>0</ManyObjects>
           <SizeOfObject>0</SizeOfObject>
           <BreakByAccess>0</BreakByAccess>
           <BreakIfRCount>1</BreakIfRCount>
-          <Filename>../Core/Src/freertos.c</Filename>
+          <Filename>../Core/Src/main.c</Filename>
           <ExecCommand></ExecCommand>
-          <Expression>\\\../Core/Src/freertos.c\320</Expression>
+          <Expression>\\Wind\../Core/Src/main.c\206</Expression>
         </Bp>
       </Breakpoint>
       <WatchWindow1>

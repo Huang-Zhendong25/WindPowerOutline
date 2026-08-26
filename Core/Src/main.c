@@ -80,7 +80,7 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-  //SCB->VTOR = APP_FLASH_STARTADDR;
+  SCB->VTOR = APP_FLASH_STARTADDR;
   
   /* USER CODE END 1 */
 
@@ -108,11 +108,13 @@ int main(void)
   MX_USART2_UART_Init();
   MX_USART3_UART_Init();
   MX_USB_PCD_Init();
-  MX_IWDG_Init();
+  //MX_IWDG_Init();
   /* USER CODE BEGIN 2 */
   bsp_init();
   //HAL_Delay(6);
   //__HAL_UART_ENABLE_IT(&huart2, UART_IT_IDLE);    //使能UART2空闲中断
+  //__enable_irq();
+  //HAL_NVIC_EnableIRQ(USART2_IRQn);
   HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
 
   /* PWR_PVDTypeDef sConfigPVD = {.Mode = PWR_PVD_MODE_IT_RISING_FALLING, .PVDLevel = PWR_PVDLEVEL_7};

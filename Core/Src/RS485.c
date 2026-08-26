@@ -1,6 +1,12 @@
 #include "RS485.h"
 #include <string.h>
 
+void RS485_Init(void)
+{
+    HAL_GPIO_WritePin(RS485_EN1_GPIO_Port, RS485_EN1_Pin, GPIO_PIN_RESET);
+    HAL_GPIO_WritePin(RS485_EN2_GPIO_Port, RS485_EN2_Pin, GPIO_PIN_RESET);
+}
+
 void RS485_Receive_To_Transmit(uint16_t GPIO_Pin)
 {
     if (GPIO_Pin == RS485_EN1_Pin)
