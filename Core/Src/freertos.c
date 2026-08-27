@@ -122,7 +122,7 @@ void MX_FREERTOS_Init(void) {
     {}
   }
 
-  /* xWatchdogTimer = xTimerCreate("WatchdogTimer", pdMS_TO_TICKS(2000), pdTRUE, NULL, WatchdogTimerCallback);
+  xWatchdogTimer = xTimerCreate("WatchdogTimer", pdMS_TO_TICKS(2000), pdTRUE, NULL, WatchdogTimerCallback);
   if (xTimerStart(xWatchdogTimer, 0) != pdPASS)
   {
     while (1)
@@ -130,7 +130,7 @@ void MX_FREERTOS_Init(void) {
       
     }
     
-  } */
+  }
   /* USER CODE END RTOS_TIMERS */
 
   /* USER CODE BEGIN RTOS_QUEUES */
