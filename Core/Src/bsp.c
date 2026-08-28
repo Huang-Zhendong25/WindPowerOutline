@@ -6,6 +6,7 @@
 #include "adc_dma.h"
 #include "dma.h"
 #include "flash_drv.h"
+#include "ntc.h"
 
 
 extern sys_info system_info;
@@ -25,6 +26,7 @@ void bsp_init(void)
 {
     RS485_Init();
     MS5314_Init(&hspi2);
+    NTC_Init();
     ADC_DMA_Init(&hadc1);
     //MS5314_Set_Voltage(MS5314_CHANNEL_ALL, 0.0f, true);
     //Laser_Disable(BLADE_NUM_ALL);
@@ -51,6 +53,7 @@ void Laser_Enable(uint8_t bladenums)
         if (bladenums & blade_numbers[i])
         {
             LaserEnablePins |= laser_numbers[i];
+            system_info.each_laser_status[i] = 0x01;
         }
     }
     LM3409_Enable(LaserEnablePins);
@@ -66,6 +69,7 @@ void Laser_Disable(uint8_t bladenums)
         if (bladenums & blade_numbers[i])
         {
             LaserDisablePins |= laser_numbers[i];
+            system_info.each_laser_status[i] = 0x0;
         }
     }
     LM3409_Disable(LaserDisablePins);

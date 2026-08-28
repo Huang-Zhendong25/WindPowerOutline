@@ -56,6 +56,8 @@
 uint8_t rx_buffer[RX_BUFFER_SIZE];
 extern xQueueHandle rs485_queue;
 extern TimerHandle_t xHallSensorTimer[3];
+
+extern sys_info system_info;
 //config_info ConfigInfo = {.state = 0, .blade_power_levels = {{0}}};
 //config_info ConfigInfo1 = {.blade_power_levels = {{1, 1}, {2, 2}, {3, 3}}};
 /* USER CODE END PV */
@@ -226,30 +228,60 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  uint8_t hall_channel = 0;
+  //uint8_t hall_channel = 0;
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
   switch (GPIO_Pin)
   {
   case HALL_IN1_Pin:
   {
-    hall_channel = 0;
-    Laser_Enable(BLADE_NUM1);
-    Laser_Set_Brightness(BLADE_NUM1, LASER_BRIGHTNESS_LEVEL1);
+    //hall_channel = 0;
+    if (system_info.each_laser_status[0] == 0x01)
+    {
+      Laser_Disable(BLADE_NUM1);
+      //system_info.each_laser_status[0] = 0x00;
+    }
+    else
+    {
+      Laser_Enable(BLADE_NUM1);
+      //system_info.each_laser_status[0] = 0x01;
+    }
+    //Laser_Enable(BLADE_NUM1);
+    //Laser_Set_Brightness(BLADE_NUM1, LASER_BRIGHTNESS_LEVEL1);
     break;
   }
   case HALL_IN2_Pin:
   {
-    hall_channel = 1;
-    Laser_Enable(BLADE_NUM2);
-    Laser_Set_Brightness(BLADE_NUM2, LASER_BRIGHTNESS_LEVEL1);
+    //hall_channel = 1;
+    if (system_info.each_laser_status[1] == 0x01)
+    {
+      Laser_Disable(BLADE_NUM2);
+      //system_info.each_laser_status[1] = 0x00;
+    }
+    else
+    {
+      Laser_Enable(BLADE_NUM2);
+      //system_info.each_laser_status[1] = 0x01;
+    }
+    //Laser_Enable(BLADE_NUM2);
+    //Laser_Set_Brightness(BLADE_NUM2, LASER_BRIGHTNESS_LEVEL1);
     break;
   }
   case HALL_IN3_Pin:
   {
-    hall_channel = 2;
-    Laser_Enable(BLADE_NUM3);
-    Laser_Set_Brightness(BLADE_NUM3, LASER_BRIGHTNESS_LEVEL1);
+    //hall_channel = 2;
+    //Laser_Enable(BLADE_NUM3);
+    //Laser_Set_Brightness(BLADE_NUM3, LASER_BRIGHTNESS_LEVEL1);
+    if (system_info.each_laser_status[2] == 0x01)
+    {
+      Laser_Disable(BLADE_NUM3);
+      //system_info.each_laser_status[2] = 0x00;
+    }
+    else
+    {
+      Laser_Enable(BLADE_NUM3);
+      //system_info.each_laser_status[2] = 0x01;
+    }
     break;
   }
   default:
@@ -259,7 +291,7 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   {
     xTimerStopFromISR(xHallSensorTimer[hall_channel], &xHigherPriorityTaskWoken);
   } */
-  xTimerStartFromISR(xHallSensorTimer[hall_channel], &xHigherPriorityTaskWoken);
+  //xTimerStartFromISR(xHallSensorTimer[hall_channel], &xHigherPriorityTaskWoken);
   portYIELD_FROM_ISR(xHigherPriorityTaskWoken);
 }
 

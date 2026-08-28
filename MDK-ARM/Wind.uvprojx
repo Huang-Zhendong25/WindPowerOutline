@@ -273,7 +273,7 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8006000</StartAddress>
+                <StartAddress>0x8004000</StartAddress>
                 <Size>0xa000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
@@ -419,6 +419,11 @@
               <FileName>flash_drv.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Core\Src\flash_drv.c</FilePath>
+            </File>
+            <File>
+              <FileName>ntc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Core\Src\ntc.c</FilePath>
             </File>
             <File>
               <FileName>main.c</FileName>

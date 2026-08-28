@@ -34,6 +34,7 @@
 #include "MS5314.h"
 #include "adc_dma.h"
 #include "flash_drv.h"
+#include "ntc.h"
 #include <string.h>
 /* USER CODE END Includes */
 
@@ -207,8 +208,8 @@ void RS485CommandTask(void *argument)
       {
         BladeNums = msg.data[0];
         Laser_Disable(BladeNums);
-        if (Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL0))
-        {
+        /* if (Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL0))
+        { */
           system_info.all_laser_status &= (~BladeNums);
           for (uint8_t blade_idx = 0; blade_idx < BLADE_NUMS; blade_idx++)
           {
@@ -218,21 +219,21 @@ void RS485CommandTask(void *argument)
               }
           }
           RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_OFF, 1, &system_info.all_laser_status);
-        }
-        else
+        /* } */
+        /* else
         {
           // Handle error in setting brightness
-        }
+        } */
 
         break;
       }
       case RS485_FRAME_CMD_ON:
       {
         BladeNums = msg.data[0];
-        bool LaserSetResult = Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL1);
+        //bool LaserSetResult = Laser_Set_Brightness(BladeNums, LASER_BRIGHTNESS_LEVEL1);
         Laser_Enable(BladeNums);
-        if (LaserSetResult)
-        {
+        //if (LaserSetResult)
+        //{
           system_info.all_laser_status |= BladeNums;
           for (uint8_t blade_idx = 0; blade_idx < BLADE_NUMS; blade_idx++)
           {
@@ -242,11 +243,11 @@ void RS485CommandTask(void *argument)
               }
           }
           RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_ON, 1, &system_info.all_laser_status);
-        }
-        else
+        //}
+        /* else
         {
           // Handle error in setting brightness
-        }
+        } */
 
         break;
       }
@@ -258,11 +259,13 @@ void RS485CommandTask(void *argument)
         {
           HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
           HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+          Laser_Enable(BLADE_NUM_ALL);
         }
         else if (system_info.control_mode == CONTROL_MODE_MANUAL)
         {
           HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
           HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+          Laser_Disable(BLADE_NUM_ALL);
         }
         RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_SET_CONTROL_MODE, 1, &system_info.control_mode);
 
@@ -352,8 +355,6 @@ void RS485CommandTask(void *argument)
 
 void TemperatureReadTask(void *argument)
 {
-  uint16_t adc_values[3];
-
   while (1)
   {
     if (xSemaphoreTake(xTemperatureReadSemaphore, portMAX_DELAY) == pdTRUE)
@@ -372,13 +373,13 @@ void TemperatureReadTask(void *argument)
         vTaskDelay(pdMS_TO_TICKS(1));
       }
 
-      if (!ADC_DMA_IsComplete())
+      if (ADC_DMA_IsComplete())
       {
-        ADC_DMA_GetValues(adc_values);
-        for (uint8_t i = 0; i < ADC_DMA_BUFFER_SIZE; i++)
-        {
-          //system_info.laser_temperature[i] = NTC_ADC2Temperature(adc_values[i]);  
-        }
+        float temperature[ADC_DMA_BUFFER_SIZE];
+        NTC_GetTemperature(temperature);
+        system_info.laser_temperature[0] = temperature[0];
+        system_info.laser_temperature[1] = temperature[1];
+        system_info.laser_temperature[2] = temperature[2];
       }
     }
   }
