@@ -299,10 +299,18 @@ void HAL_PWR_PVDCallback(void)
 {
   if (__HAL_PWR_GET_FLAG(PWR_FLAG_PVDO) != RESET)
   {
-    config_info ConfigInfo1 = {.blade_power_levels = {{10, 10}, {2, 2}, {3, 3}}};
+    //config_info ConfigInfo1 = {.blade_power_levels = {{10, 10}, {2, 2}, {3, 3}}};
+    saved_config_info save_info;
+    save_info.control_mode = system_info.control_mode;
+    for (uint8_t i = 0; i < BLADE_NUMS; i++)
+    {
+      save_info.each_laser_status[i] = system_info.each_laser_status[i];
+      save_info.blade_power_level[i][0] = system_info.blade_power_level[i][0];
+      save_info.blade_power_level[i][1] = system_info.blade_power_level[i][1];
+    }
     /* __HAL_PWR_CLEAR_FLAG(PWR_FLAG_PVDO);
     __disable_irq(); */
-    if (ConfigInfo_Save(&ConfigInfo1))
+    if (ConfigInfo_Save(&save_info))
       HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_SET);
     /* __enable_irq(); */
   }

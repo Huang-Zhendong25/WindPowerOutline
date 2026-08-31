@@ -16,10 +16,12 @@ uint16_t laser_numbers[LASER_NUMS] = {LASER_NUM1, LASER_NUM2, LASER_NUM3};
 uint8_t rs485_numbers[RS485_NUMS] = {RS485_NUM1, RS485_NUM2};
 uint8_t rs485_en_pins[RS485_NUMS] = {RS485_EN1_Pin, RS485_EN2_Pin};
 uint16_t maxDACvalue = MAX_DAC_VALUE;
-static const config_info default_config_info = {
-    .blade_power_levels = {{0}},
+static const saved_config_info default_config_info = {
+    .blade_power_level = {{0}},
+    .control_mode = CONTROL_MODE_MANUAL,
+    .each_laser_status = {0},
 };
-config_info ConfigInfo = {0};
+//saved_config_info ConfigInfo = {0};
 
 
 void bsp_init(void)
@@ -33,8 +35,7 @@ void bsp_init(void)
     memcpy(system_info.serial_number, SYS_INFO_SERIAL_NUMBER, sizeof(system_info.serial_number));
     memcpy(system_info.firmware_version, SYS_INFO_FIRMWARE_VERSION, sizeof(system_info.firmware_version));
 
-    ConfigInfo_Load(&ConfigInfo);
-    FlashErasePage(CONFIG_INFO_START_ADDR);
+    //ConfigInfo_ConfigureSys();
 }
 
 void Laser_PowerLevel_Calculate(float maxCurrent, float CurrentRipple, float RSNS)
@@ -162,22 +163,23 @@ bool RS485_RespondFrame(uint8_t rs485_num, uint8_t cmd, uint8_t datasize, uint8_
     return true;
 }
 
-bool ConfigInfo_Load(config_info *info)
+bool ConfigInfo_Load(saved_config_info *info)
 {
     uint32_t flash_data[CONFIG_INFO_WORD_SIZE];
     
     bool status = Flash_ReadBuffer(CONFIG_INFO_START_ADDR, flash_data, CONFIG_INFO_WORD_SIZE);
-    memcpy(info, flash_data, sizeof(config_info));
+    memcpy(info, flash_data, sizeof(saved_config_info));
 
     return status;
 }
 
-bool ConfigInfo_Save(const config_info *info)
+bool ConfigInfo_Save(const saved_config_info *info)
 {
     uint32_t flash_data[CONFIG_INFO_WORD_SIZE];
     
-    memcpy(flash_data, info, sizeof(config_info));
+    memcpy(flash_data, info, sizeof(saved_config_info));
     //memset((uint8_t *)flash_data + sizeof(config_info), 0xff, CONFIG_INFO_WORD_SIZE * 4 - sizeof(config_info));
+    //FlashErasePage(CONFIG_INFO_START_ADDR);
 
     return Flash_WriteBuffer(CONFIG_INFO_START_ADDR, flash_data, CONFIG_INFO_WORD_SIZE, false);
 }
@@ -185,4 +187,43 @@ bool ConfigInfo_Save(const config_info *info)
 bool ConfigInfo_ResetToDefault(void)
 {
     return ConfigInfo_Save(&default_config_info);
+}
+
+bool ConfigInfo_ConfigureSys(void)
+{
+    saved_config_info config_info;
+
+    if (ConfigInfo_Load(&config_info) == false)
+        return false;
+    system_info.control_mode = config_info.control_mode;
+    for (uint8_t i = 0; i < LASER_NUMS; i++)
+    {
+      system_info.each_laser_status[i] = config_info.each_laser_status[i];
+      system_info.blade_power_level[i][0] = config_info.blade_power_level[i][0];
+      system_info.blade_power_level[i][1] = config_info.blade_power_level[i][1];
+    }
+
+    if (system_info.control_mode == CONTROL_MODE_SERIAL)
+    {
+        HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+        HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+        Laser_Enable(BLADE_NUM_ALL);
+    }
+    else if (system_info.control_mode == CONTROL_MODE_MANUAL)
+    {
+        HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+        HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
+        Laser_Disable(BLADE_NUM_ALL);
+    }
+
+    for (uint8_t blade_idx = 0; blade_idx < BLADE_NUMS; blade_idx++)
+    {
+        uint16_t powerlevel = (system_info.blade_power_level[blade_idx][0] << 8) | system_info.blade_power_level[blade_idx][1];
+        if (Laser_Set_PowerLevel(blade_numbers[blade_idx], powerlevel) == false)
+            return false;
+    }
+
+    FlashErasePage(CONFIG_INFO_START_ADDR);   //erase 
+
+    return true;
 }

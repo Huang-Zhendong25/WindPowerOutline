@@ -29,6 +29,9 @@
 #define CONTROL_MODE_MANUAL      0x00
 #define CONTROL_MODE_SERIAL      0x01
 
+#define LASER_ON            0x01
+#define LASER_OFF           0x00
+
 #define SYS_INFO_SERIAL_NUMBER   "FD202606001"
 #define SYS_INFO_FIRMWARE_VERSION "V1.0.0"
 
@@ -38,8 +41,8 @@
 #define RSNS_VALUE    0.068f
 #define RIPPLE_CURRENT 0.05f
 
-#define CONFIG_INFO_START_ADDR      0x0800f000     //flash address of configuration information
-#define CONFIG_INFO_WORD_SIZE       (sizeof(config_info) / 4 + 1)
+#define CONFIG_INFO_START_ADDR      0x0800f400     //flash address of configuration information
+#define CONFIG_INFO_WORD_SIZE       (sizeof(saved_config_info) / 4)
 
 #define FIRMWIRE_UPGRADE_FLAG_ADDR      0x0800f000
 #define FIRMWIRE_UPGRADE_FLAGE_MAGIC    0x5a5a5a5a
@@ -59,11 +62,13 @@ typedef struct
 
 typedef struct 
 {
-    uint8_t blade_power_levels[3][2];
-    //uint8_t state;
-} config_info;
+    uint8_t each_laser_status[3];
+    uint8_t control_mode;
+    uint8_t blade_power_level[3][2];
+    
+    uint8_t reverse[2];    //4-byte alignment
+} saved_config_info;
 
-extern config_info ConfigInfo;
 
 
 void bsp_init(void);
@@ -74,8 +79,9 @@ bool Laser_Set_PowerLevel(uint8_t bladenums, uint16_t powerlevel);
 void RS485_Receive2Transmit(uint8_t Rs485Num);
 void RS485_Transmit2Receive(uint8_t Rs485Num);
 bool RS485_RespondFrame(uint8_t rs485_num, uint8_t cmd, uint8_t datasize, uint8_t *data);
-bool ConfigInfo_Load(config_info *info);
-bool ConfigInfo_Save(const config_info *info);
+bool ConfigInfo_Load(saved_config_info *info);
+bool ConfigInfo_Save(const saved_config_info *info);
 bool ConfigInfo_ResetToDefault(void);
+bool ConfigInfo_ConfigureSys(void);
 
 #endif

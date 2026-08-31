@@ -215,7 +215,7 @@ void RS485CommandTask(void *argument)
           {
               if (BladeNums & blade_numbers[blade_idx])
               {
-                  system_info.each_laser_status[blade_idx] = 0;
+                  system_info.each_laser_status[blade_idx] = LASER_OFF;
               }
           }
           RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_OFF, 1, &system_info.all_laser_status);
@@ -239,7 +239,7 @@ void RS485CommandTask(void *argument)
           {
               if (BladeNums & blade_numbers[blade_idx])
               {
-                  system_info.each_laser_status[blade_idx] = 0x01;
+                  system_info.each_laser_status[blade_idx] = LASER_ON;
               }
           }
           RS485_RespondFrame(RS485_NUM1 | RS485_NUM2, RS485_FRAME_CMD_ON, 1, &system_info.all_laser_status);
