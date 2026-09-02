@@ -25,6 +25,7 @@
 ![System achitecture](picture/memory.png)
 
 ## 五、主要目录结构
+```
 /  
 ├── bootloader/                    # Bootloader工程  
 │   ├── Core/                      # 核心代码  
@@ -36,12 +37,14 @@
 │── Drivers/                       # FreeRTOS  
 ├── upper_pc/                      # 上位机  
 └── README.md  
+```
 
 ## 六、快速开始
 ### 主要硬件需求   
 ![Key hardware](picture/hardware.png)
 
 ### 编译与烧录
+```
 #### Bootloader (起始地址: 0x08000000)
 1. 编译Bootloader工程，生成 .bin 文件
 2. 通过ST-Link烧录Bootloader
@@ -50,6 +53,7 @@
 2. 建议在main函数开头添加: SCB->VTOR = 0x08004000;
 3. 编译生成 .bin 文件
 4. 通过ST-Link烧录APP，或通过上位机IAP升级
+```
 
 ## 七、APP程序
 
