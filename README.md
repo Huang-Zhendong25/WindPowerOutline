@@ -21,6 +21,7 @@
 
 ## 系统架构  
 下图展示了内部Flash主存储块的分配情况：    
+
 ![System achitecture](picture/memory.png)
 
 ## 主要目录结构
@@ -51,15 +52,23 @@
 4. 通过ST-Link烧录APP，或通过上位机IAP升级
 
 ## APP程序
+
 ***模块化分层，架构清晰，多层解耦，以便复用、移植、扩展和维护，具有多任务实时调度、外设驱动抽象和上位机控制能力，实时性强、通信可靠、系统健壮***    
+
 ### 驱动层（驱动代码均可复用）
 1、片内ADC+DMA的三路NTC温度采集，并对温度数据滑动平均滤波以抑制噪声，提高测量稳定性；   
+
 2、片内Flash读写与擦除；   
+
 3、RS485收发，包括帧解析和校验；    
+
 4、MS5314 DAC芯片驱动（SPI通信）,为LM3409 LED驱动芯片提供模拟电压以实现模拟调光；UCC27511栅极驱动芯片可进一步实现PWM调光。    
+
 ### 硬件抽象层HAL
 1、封装了激光二极管开关控制和功率级数设定、上位机通信（接收与回传）、配置参数从Flash加载或保存至Flash；   
+
 2、将所有硬件和配置参数的初始化封装；   
+
 ### 应用层
 1、*FreeRTOS多任务实时调度*，低优先级默认任务执行LED灯闪烁以便调试直观观察，中优先级温度采集任务每秒采集一次三路激光二极管温度，高优先级上位机数据帧处理任务解析并执行上位机指令；  
 
@@ -75,24 +84,34 @@
 
 ## BootLoader
 1、基于状态机编写升级流程，并使用独立看门狗避免程序卡死，*始终确保可恢复性*，而不必在异常出现时需要手动复位或重新擦除Flash，对于风电等恶劣环境下的维护非常友好；  
+
 2、正常情况下，上电后BootLoader会直接跳转到APP程序（有2s时间供确认是否直接跳转），APP程序也可发起固件升级，复位回到BootLoader进行升级，所有异常都可导致最终进入到“等待固件升级”阶段，而不是复位后循环卡死；   
+
 3、基于简单状态机逐字节接收和处理数据帧，以此处理不定长数据帧，并尽可能减小程序大小。     
+
 ![state-machine of BootLoader](picture/state_machine.png)
 
 ## 上位机
 由AI生成的基于PySide6的上位机，能够显示激光二极管温度、出光功率级数和开关状态，以及控制模式、设备信息等，还可根据预定的数据帧格式完成光源控制、功率级数和控制模式设定，以及灵活可控的固件升级   
+
 ![Upper-PC1](picture/Upper_PC1.png)
 ![Upper-PC2](picture/Upper_PC2.png)
 ![Upper-PC3](picture/Upper_PC3.png)
 
 ## 声明
-本项目为作者在凌云光技术股份有限公司先进光学与计算成像研究所实习期间完成，项目代码及相关知识产权的所有权归凌云光技术股份有限公司所有。此仓库仅用于展示个人在实习期间的部分工作内容与技术贡献，以及编程风格和架构设计思路，代码中不包含公司的任何商业机密或未公开的算法，不作为商业用途，也不代表公司对该实现的最终认可。项目代码未经过针对性的优化和架构调整，仅供参考学习。
+本项目为作者在凌云光技术股份有限公司先进光学与计算成像研究所实习期间完成，项目代码及相关知识产权的所有权归凌云光技术股份有限公司所有。  
+
+此仓库仅用于展示个人在实习期间的部分工作内容与技术贡献，以及编程风格和架构设计思路，代码中不包含公司的任何商业机密或未公开的算法，不作为商业用途，也不代表公司对该实现的最终认可。   
+项目代码未经过针对性的优化和架构调整，仅供参考学习。
 
 ## 致谢
 感谢王浩宇总经理、来超工程师、李朗工程师和王森工程师等同事在硬件设计、代码编写、实机调试等环节的大力帮助与指导。
 
 ## LICENSE
-This project is licensed under the [MIT License][1] (or [Apache License 2.0][2]).
-The code was developed during an internship at Lusterinc and is shared for reference and demonstration purposes only. By using this software, you agree to the terms and conditions of the chosen license.
-[1]: https://opensource.org/licenses/MIT
+This project is licensed under the [MIT License][1] (or [Apache License 2.0][2]).   
+
+The code was developed during an internship at Lusterinc and is shared for reference and demonstration purposes only. By using this software, you agree to the terms and conditions of the chosen license.   
+
+[1]: https://opensource.org/licenses/MIT   
+
 [2]: https://www.apache.org/licenses/LICENSE-2.0
