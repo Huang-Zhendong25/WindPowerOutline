@@ -119,12 +119,12 @@ int main(void)
   //HAL_NVIC_EnableIRQ(USART2_IRQn);
   HAL_UARTEx_ReceiveToIdle_IT(&huart2, rx_buffer, RX_BUFFER_SIZE);
 
-  /* PWR_PVDTypeDef sConfigPVD = {.Mode = PWR_PVD_MODE_IT_RISING_FALLING, .PVDLevel = PWR_PVDLEVEL_7};
+  PWR_PVDTypeDef sConfigPVD = {.Mode = PWR_PVD_MODE_IT_RISING_FALLING, .PVDLevel = PWR_PVDLEVEL_7};
   __HAL_RCC_PWR_CLK_ENABLE();
   HAL_PWR_ConfigPVD(&sConfigPVD);
   HAL_PWR_EnablePVD();
   HAL_NVIC_SetPriority(PVD_IRQn, 2, 2);
-  HAL_NVIC_EnableIRQ(PVD_IRQn); */
+  HAL_NVIC_EnableIRQ(PVD_IRQn);
 
   //HAL_GPIO_WritePin(LED_STATE_GPIO_Port, LED_STATE_Pin, GPIO_PIN_RESET);
   //ConfigInfo_Save(&ConfigInfo1);
@@ -228,59 +228,67 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
 
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
 {
-  //uint8_t hall_channel = 0;
   BaseType_t xHigherPriorityTaskWoken = pdFALSE;
 
   switch (GPIO_Pin)
   {
   case HALL_IN1_Pin:
   {
-    //hall_channel = 0;
-    if (system_info.each_laser_status[0] == 0x01)
+    /* if (system_info.each_laser_status[0] == LASER_ON)
     {
       Laser_Disable(BLADE_NUM1);
-      //system_info.each_laser_status[0] = 0x00;
     }
     else
     {
       Laser_Enable(BLADE_NUM1);
-      //system_info.each_laser_status[0] = 0x01;
+    } */
+    if (HAL_GPIO_ReadPin(HALL_IN1_GPIO_Port, HALL_IN1_Pin) == GPIO_PIN_SET)
+    {
+      Laser_Enable(BLADE_NUM1);
     }
-    //Laser_Enable(BLADE_NUM1);
-    //Laser_Set_Brightness(BLADE_NUM1, LASER_BRIGHTNESS_LEVEL1);
+    else
+    {
+      Laser_Disable(BLADE_NUM1);
+    }
     break;
   }
   case HALL_IN2_Pin:
   {
-    //hall_channel = 1;
-    if (system_info.each_laser_status[1] == 0x01)
+    /* if (system_info.each_laser_status[1] == LASER_ON)
     {
       Laser_Disable(BLADE_NUM2);
-      //system_info.each_laser_status[1] = 0x00;
     }
     else
     {
       Laser_Enable(BLADE_NUM2);
-      //system_info.each_laser_status[1] = 0x01;
+    } */
+    if (HAL_GPIO_ReadPin(HALL_IN2_GPIO_Port, HALL_IN2_Pin) == GPIO_PIN_SET)
+    {
+      Laser_Enable(BLADE_NUM2);
     }
-    //Laser_Enable(BLADE_NUM2);
-    //Laser_Set_Brightness(BLADE_NUM2, LASER_BRIGHTNESS_LEVEL1);
+    else
+    {
+      Laser_Disable(BLADE_NUM2);
+    }
     break;
   }
   case HALL_IN3_Pin:
   {
-    //hall_channel = 2;
-    //Laser_Enable(BLADE_NUM3);
-    //Laser_Set_Brightness(BLADE_NUM3, LASER_BRIGHTNESS_LEVEL1);
-    if (system_info.each_laser_status[2] == 0x01)
+    /* if (system_info.each_laser_status[2] == LASER_ON)
     {
       Laser_Disable(BLADE_NUM3);
-      //system_info.each_laser_status[2] = 0x00;
     }
     else
     {
       Laser_Enable(BLADE_NUM3);
-      //system_info.each_laser_status[2] = 0x01;
+    } */
+    if (HAL_GPIO_ReadPin(HALL_IN3_GPIO_Port, HALL_IN3_Pin) == GPIO_PIN_SET)
+    {
+      Laser_Enable(BLADE_NUM3);
+    }
+    else
+    {
+      Laser_Disable(BLADE_NUM3);
     }
     break;
   }

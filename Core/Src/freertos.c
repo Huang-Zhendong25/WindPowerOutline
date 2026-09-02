@@ -115,7 +115,7 @@ void MX_FREERTOS_Init(void) {
   xHallSensorTimer[1] = xTimerCreate("HallSensorTimer2", pdMS_TO_TICKS(1000), pdFALSE, (void *)1, HallSensorTimerCallback);
   xHallSensorTimer[2] = xTimerCreate("HallSensorTimer3", pdMS_TO_TICKS(1000), pdFALSE, (void *)2, HallSensorTimerCallback);
 
-  xTemperatureReadTimer = xTimerCreate("TemperatureReadTimer", pdMS_TO_TICKS(3000), pdTRUE, NULL, TemperatureReadTimerCallback);
+  xTemperatureReadTimer = xTimerCreate("TemperatureReadTimer", pdMS_TO_TICKS(1000), pdTRUE, NULL, TemperatureReadTimerCallback);
   if (xTimerStart(xTemperatureReadTimer, 0) != pdPASS)    //start timer
   {
     // Handle error in starting the timer

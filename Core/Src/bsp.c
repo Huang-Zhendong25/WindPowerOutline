@@ -34,8 +34,24 @@ void bsp_init(void)
     //Laser_Disable(BLADE_NUM_ALL);
     memcpy(system_info.serial_number, SYS_INFO_SERIAL_NUMBER, sizeof(system_info.serial_number));
     memcpy(system_info.firmware_version, SYS_INFO_FIRMWARE_VERSION, sizeof(system_info.firmware_version));
+    
+    /* Laser_Set_PowerLevel(BLADE_NUM1, 1500);
+    Laser_Set_PowerLevel(BLADE_NUM2, 1500);
+    Laser_Set_PowerLevel(BLADE_NUM3, 1500);
+    system_info.blade_power_level[0][0] = 1500 >> 8;
+    system_info.blade_power_level[0][1] = 1500 & 0xff;
+    system_info.blade_power_level[1][0] = 1500 >> 8;
+    system_info.blade_power_level[1][1] = 1500 & 0xff;
+    system_info.blade_power_level[2][0] = 1500 >> 8;
+    system_info.blade_power_level[2][1] = 1500 & 0xff; */
 
-    //ConfigInfo_ConfigureSys();
+    /* system_info.control_mode = CONTROL_MODE_MANUAL; */
+    /* system_info.control_mode = CONTROL_MODE_SERIAL;
+
+    HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
+    HAL_NVIC_DisableIRQ(EXTI15_10_IRQn);
+    Laser_Enable(BLADE_NUM_ALL); */
+    ConfigInfo_ConfigureSys();
 }
 
 void Laser_PowerLevel_Calculate(float maxCurrent, float CurrentRipple, float RSNS)
@@ -201,8 +217,15 @@ bool ConfigInfo_ConfigureSys(void)
       system_info.each_laser_status[i] = config_info.each_laser_status[i];
       system_info.blade_power_level[i][0] = config_info.blade_power_level[i][0];
       system_info.blade_power_level[i][1] = config_info.blade_power_level[i][1];
+      uint16_t power_level = (system_info.blade_power_level[i][0] << 8) | system_info.blade_power_level[i][1];
+      if (power_level > 4096)
+      {
+        system_info.blade_power_level[i][0] = 1500 >> 8;
+        system_info.blade_power_level[i][1] = 1500 & 0xff;
+      }
     }
 
+    system_info.control_mode = system_info.control_mode == 0xff ? CONTROL_MODE_MANUAL : system_info.control_mode;
     if (system_info.control_mode == CONTROL_MODE_SERIAL)
     {
         HAL_NVIC_DisableIRQ(EXTI9_5_IRQn);
@@ -221,6 +244,18 @@ bool ConfigInfo_ConfigureSys(void)
         uint16_t powerlevel = (system_info.blade_power_level[blade_idx][0] << 8) | system_info.blade_power_level[blade_idx][1];
         if (Laser_Set_PowerLevel(blade_numbers[blade_idx], powerlevel) == false)
             return false;
+    }
+
+    for (uint8_t laser_idx = 0; laser_idx < LASER_NUMS; laser_idx++)
+    {
+        if (system_info.each_laser_status[laser_idx] == LASER_ON)
+        {
+            Laser_Enable(blade_numbers[laser_idx]);
+        }
+        else
+        {
+            Laser_Disable(blade_numbers[laser_idx]);
+        }
     }
 
     FlashErasePage(CONFIG_INFO_START_ADDR);   //erase 

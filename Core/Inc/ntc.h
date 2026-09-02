@@ -8,7 +8,7 @@
 #define NTC_REF_TEMPERATURE     25.0f
 #define NTC_REF_TEMP_RESISTENCE 10000.0f
 
-#define NTC_FILTER_LEN          10
+#define NTC_FILTER_LEN          5
 
 void NTC_Init(void);
 void NTC_GetTemperature(float *filtered_temperatures);
