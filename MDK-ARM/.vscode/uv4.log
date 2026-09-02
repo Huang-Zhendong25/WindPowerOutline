@@ -1,0 +1,13 @@
+*** Using Compiler 'V5.06 update 5 (build 528)', folder: 'D:\Keil_v5\ARM\ARMCC\Bin'
+Build target 'BootLoader'
+compiling bootloader.c...
+..\Core\Src\bootloader.c(157): warning:  #550-D: variable "data_received"  was set but never used
+      bool data_received = false;
+..\Core\Src\bootloader.c(158): warning:  #177-D: variable "start_tick"  was declared but never referenced
+      uint32_t start_tick;
+..\Core\Src\bootloader.c: 2 warnings, 0 errors
+linking...
+Program Size: Code=4020 RO-data=312 RW-data=16 ZI-data=1720  
+FromELF: creating hex file...
+"BootLoader\BootLoader.axf" - 0 Error(s), 2 Warning(s).
+Build Time Elapsed:  00:00:02
